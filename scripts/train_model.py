@@ -31,7 +31,7 @@ def main():
     parser.add_argument(
         "--data-file", 
         type=str, 
-        default="../data/balanced_dataset.json",
+        default="../data/training_dataset.json",
         help="Path to training dataset JSON file"
     )
     parser.add_argument(

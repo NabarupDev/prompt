@@ -94,7 +94,8 @@ def main():
     parser.add_argument(
         "--input-file", 
         type=str, 
-        help="Path to input dataset JSON file (optional)"
+        default="../data/original_dataset.json",
+        help="Path to input dataset JSON file"
     )
     parser.add_argument(
         "--output-file", 
@@ -105,7 +106,12 @@ def main():
     parser.add_argument(
         "--create-sample", 
         action="store_true",
-        help="Create a sample dataset for demonstration"
+        help="Create a small sample dataset for demonstration (overrides input-file)"
+    )
+    parser.add_argument(
+        "--use-original", 
+        action="store_true",
+        help="Use original dataset without balancing (recommended for better performance)"
     )
     parser.add_argument(
         "--balance-method", 
@@ -136,38 +142,50 @@ def main():
         import pandas as pd
         df = pd.DataFrame(sample_data)
         
-    elif args.input_file:
-        # Load existing dataset
+    else:
+        # Load existing dataset (default: original_dataset.json)
         input_file = script_dir / args.input_file
         logger.info(f"📁 Loading dataset from: {input_file}")
-        df = data_processor.load_dataset(str(input_file))
         
-    else:
-        logger.error("❌ Please provide either --input-file or --create-sample")
-        return 1
+        if not input_file.exists():
+            logger.error(f"❌ Input file not found: {input_file}")
+            logger.info("💡 Available options:")
+            logger.info("   1. Use --create-sample to create a small demo dataset")
+            logger.info("   2. Ensure original_dataset.json exists in the data/ folder")
+            return 1
+            
+        df = data_processor.load_dataset(str(input_file))
     
     # Analyze original distribution
     logger.info("📊 Analyzing original dataset distribution...")
     original_stats = data_processor.analyze_distribution(df)
     
-    # Balance dataset if needed
-    if len(set(original_stats['distribution'].values())) > 1:
-        logger.info(f"⚖️ Balancing dataset using {args.balance_method} method...")
-        df_balanced = data_processor.balance_dataset(df, method=args.balance_method)
-        
-        # Analyze balanced distribution
-        balanced_stats = data_processor.analyze_distribution(df_balanced)
-        logger.info("✅ Dataset balanced successfully!")
+    # Check if we should use original dataset without balancing
+    if args.use_original:
+        logger.info("🎯 Using original dataset without balancing for better model performance")
+        df_final = df
+        # Update output filename to reflect this is the original dataset
+        output_file = output_file.parent / "training_dataset.json"
         
     else:
-        logger.info("✅ Dataset is already balanced")
-        df_balanced = df
+        # Balance dataset if needed
+        if len(set(original_stats['distribution'].values())) > 1:
+            logger.info(f"⚖️ Balancing dataset using {args.balance_method} method...")
+            df_final = data_processor.balance_dataset(df, method=args.balance_method)
+            
+            # Analyze balanced distribution
+            balanced_stats = data_processor.analyze_distribution(df_final)
+            logger.info("✅ Dataset balanced successfully!")
+            
+        else:
+            logger.info("✅ Dataset is already balanced")
+            df_final = df
     
-    # Save balanced dataset
-    data_processor.save_dataset(df_balanced, str(output_file))
+    # Save final dataset
+    data_processor.save_dataset(df_final, str(output_file))
     
     logger.info("✅ Data preparation completed successfully!")
-    logger.info(f"📁 Balanced dataset saved to: {output_file}")
+    logger.info(f"📁 Dataset saved to: {output_file}")
     logger.info("🏋️ Train the model with: python scripts/train_model.py")
     
     return 0
