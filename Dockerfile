@@ -28,7 +28,8 @@ ENV RELOAD=false
 ENV DEBUG=false
 
 # Train the model from scratch (will overwrite any existing model)
-RUN python scripts/prepare_data.py --input-file data/original_dataset.json --balance-method undersample && \
+# First create sample data if original_dataset.json doesn't exist, then train
+RUN python scripts/prepare_data.py --create-sample && \
     python scripts/train_model.py
 
 # Expose API port
