@@ -12,7 +12,7 @@ import logging
 from pathlib import Path
 
 # Add src to path for imports
-sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
+sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from src.utils.data_processor import DataProcessor
 from src.utils.model_utils import ModelUtils

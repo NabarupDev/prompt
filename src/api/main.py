@@ -9,9 +9,9 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
 
-from .models.classifier import PromptInjectionClassifier
-from .api.routes import PromptInjectionRoutes
-from .api.models import TextInput, PredictionResponse, HealthResponse, BatchPredictionResponse
+from ..models.classifier import PromptInjectionClassifier
+from .routes import PromptInjectionRoutes
+from .models import TextInput, PredictionResponse, HealthResponse, BatchPredictionResponse
 
 # Load environment variables
 load_dotenv()

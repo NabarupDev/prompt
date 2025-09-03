@@ -11,8 +11,12 @@ import argparse
 import logging
 from pathlib import Path
 
-# Add src to path for imports
-sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
+# Add project root to Python path
+project_root = Path(__file__).parent.parent
+sys.path.insert(0, str(project_root))
+
+# Also add current directory
+sys.path.insert(0, str(Path.cwd()))
 
 # Setup logging
 logging.basicConfig(
@@ -118,6 +122,13 @@ def main():
     # Import and start the server
     try:
         import uvicorn
+        
+        # Change to project root directory first
+        original_cwd = os.getcwd()
+        project_root = script_dir.parent
+        os.chdir(project_root)
+        
+        # Now import the app after changing directory
         from src.api.main import app
         
         logger.info(f"🌐 Server will be available at: http://{args.host}:{args.port}")
@@ -138,8 +149,15 @@ def main():
         
     except KeyboardInterrupt:
         logger.info("\n👋 Server stopped by user")
+        # Restore original working directory
+        os.chdir(original_cwd)
     except Exception as e:
         logger.error(f"❌ Failed to start server: {e}")
+        # Restore original working directory
+        try:
+            os.chdir(original_cwd)
+        except:
+            pass
         return 1
     
     return 0
